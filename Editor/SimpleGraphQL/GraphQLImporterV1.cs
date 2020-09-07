@@ -15,18 +15,26 @@ namespace SimpleGraphQL
     {
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            var lexer = new Lexer();
-            var parser = new Parser(lexer);
-            var regex = new Regex("#import \\\"(?<path>[\\w\\/.]+)\\\"");
+            Lexer lexer = new Lexer();
+            Parser parser = new Parser(lexer);
+            // Match against all lines starting with "#import "
+            // and assign values coming after it to a group called path
+            Regex regex = new Regex("#import \\\"(?<path>[\\w\\/.]+)\\\"");
             string contents = File.ReadAllText(ctx.assetPath);
             foreach(Match match in regex.Matches(contents))
             {
-                var replacementContent = File.ReadAllText(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ctx.assetPath), match.Groups["path"].Value)));
-                contents = contents.Replace(match.Value, replacementContent);
+                string filePath = Path.Combine(Path.GetDirectoryName(ctx.assetPath), match.Groups["path"].Value);
+                // Since the filePath contains . and .. to traverse current / parent directory
+                // we need to convert the relative path to an actual path
+                // and then read contents of that file
+                string replacementContents = File.ReadAllText(Path.GetFullPath(filePath));
+
+                // Replace the #import directive as a whole with the replacement contents
+                contents = contents.Replace(match.Value, replacementContents);
             }
 
             string fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
-            var queryFile = ScriptableObject.CreateInstance<GraphQLFile>();
+            GraphQLFile queryFile = ScriptableObject.CreateInstance<GraphQLFile>();
 
             GraphQLDocument graphQLDocument = parser.Parse(new Source(contents));
 
@@ -61,6 +69,7 @@ namespace SimpleGraphQL
                     });
                 }
             }
+            // #typespec is a custom definition indicating that the file might not contain queries
             else if(string.IsNullOrEmpty(contents) || !contents.StartsWith("#typespec"))
             {
                 throw new ArgumentException(
