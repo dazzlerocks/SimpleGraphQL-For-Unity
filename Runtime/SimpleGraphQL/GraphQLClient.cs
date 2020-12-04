@@ -113,6 +113,18 @@ namespace SimpleGraphQL
         }
 
         /// <summary>
+        /// Registers a listener for receiving info about web socket dying
+        /// </summary>
+        /// <param name="listener">Listener to register</param>
+        public void RegisterWebSocketErrorListener(Action<string> listener) => HttpUtils.WebSocketDied += listener;
+
+        /// <summary>
+        /// Unegisters a listener from receiving info about web socket dying
+        /// </summary>
+        /// <param name="listener">Listener to unregister</param>
+        public void UnregisterWebSocketErrorListener(Action<string> listener) => HttpUtils.WebSocketDied -= listener;
+
+        /// <summary>
         /// Subscribe to a query in GraphQL.
         /// </summary>
         /// <param name="query"></param>

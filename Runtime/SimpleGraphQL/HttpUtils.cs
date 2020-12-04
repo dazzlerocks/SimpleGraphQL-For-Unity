@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -21,6 +22,7 @@ namespace SimpleGraphQL
         /// Called when the websocket receives subscription data.
         /// </summary>
         public static event Action<string> SubscriptionDataReceived;
+        public static event Action<string> WebSocketDied;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void PreInit()
@@ -250,13 +252,28 @@ namespace SimpleGraphQL
 
                 WebSocketReceiveResult wsReceiveResult;
                 var jsonBuild = new StringBuilder();
-
+                bool isAlive = true;
                 do
                 {
-                    wsReceiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                    try
+                    {
+                        wsReceiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                    }
+                    catch(SocketException e)
+                    {
+                        Debug.LogError($"Web socket died:\n{e}");
+                        WebSocketDied?.Invoke($"{e}");
+                        isAlive = false;
+                        break;
+                    }
 
                     jsonBuild.Append(Encoding.UTF8.GetString(buffer.Array, buffer.Offset, wsReceiveResult.Count));
                 } while (!wsReceiveResult.EndOfMessage);
+
+                if(!isAlive)
+                {
+                    return;
+                }
 
                 var jsonResult = jsonBuild.ToString();
                 if (jsonResult.IsNullOrEmpty()) return;
