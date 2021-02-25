@@ -12,6 +12,12 @@ using UnityEngine.Networking;
 
 namespace SimpleGraphQL
 {
+    public enum SubscriptionError
+    {
+        SocketFailure,
+        InvalidPayload
+    }
+
     [PublicAPI]
     public static class HttpUtils
     {
@@ -20,7 +26,12 @@ namespace SimpleGraphQL
         /// <summary>
         /// Called when the websocket receives subscription data.
         /// </summary>
-        public static event Action<string> SubscriptionDataReceived;
+        internal static event Action<string> SubscriptionDataReceived;
+
+        /// <summary>
+        /// Called when the an error occurs during websocket operations.
+        /// </summary>
+        internal static event Action<SubscriptionError, string> SubscriptionErrorOccured;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void PreInit()
@@ -251,12 +262,21 @@ namespace SimpleGraphQL
                 WebSocketReceiveResult wsReceiveResult;
                 var jsonBuild = new StringBuilder();
 
-                do
+                try
                 {
-                    wsReceiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                    do
+                    {
+                        wsReceiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
 
-                    jsonBuild.Append(Encoding.UTF8.GetString(buffer.Array, buffer.Offset, wsReceiveResult.Count));
-                } while (!wsReceiveResult.EndOfMessage);
+                        jsonBuild.Append(Encoding.UTF8.GetString(buffer.Array, buffer.Offset, wsReceiveResult.Count));
+                    } while(!wsReceiveResult.EndOfMessage);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError($"Socket failure:\n{e}");
+                    SubscriptionErrorOccured?.Invoke(SubscriptionError.SocketFailure, e.ToString());
+                    break;
+                }
 
                 var jsonResult = jsonBuild.ToString();
                 if (jsonResult.IsNullOrEmpty()) return;
@@ -266,9 +286,11 @@ namespace SimpleGraphQL
                 {
                     jsonObj = JObject.Parse(jsonResult);
                 }
-                catch (JsonReaderException e)
+                catch(JsonReaderException e)
                 {
-                    throw new ApplicationException(e.Message);
+                    Debug.LogError($"Socket failure:\n{e}");
+                    SubscriptionErrorOccured?.Invoke(SubscriptionError.InvalidPayload, e.ToString());
+                    break;
                 }
 
                 var subType = (string) jsonObj["type"];

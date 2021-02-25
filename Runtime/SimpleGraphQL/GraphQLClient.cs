@@ -97,20 +97,26 @@ namespace SimpleGraphQL
         /// <summary>
         /// Registers a listener for subscriptions.
         /// </summary>
-        /// <param name="listener"></param>
-        public void RegisterListener(Action<string> listener)
-        {
-            HttpUtils.SubscriptionDataReceived += listener;
-        }
+        /// <param name="listener">Data listener to register</param>
+        public void RegisterSubscriptionDataListener(Action<string> listener) => HttpUtils.SubscriptionDataReceived += listener;
+
         /// <summary>
         /// Unregisters a listener for subscriptions.
         /// </summary>
-        /// <param name="listener"></param>
+        /// <param name="listener">Data listener to unregister</param>
+        public void UnregisterSubscriptionDataListener(Action<string> listener) => HttpUtils.SubscriptionDataReceived -= listener;
 
-        public void UnregisterListener(Action<string> listener)
-        {
-            HttpUtils.SubscriptionDataReceived -= listener;
-        }
+        /// <summary>
+        /// Registers a listener for subscription errors.
+        /// </summary>
+        /// <param name="listener"Error listener to register></param>
+        public void RegisterSubscriptionErrorListener(Action<SubscriptionError, string> listener) => HttpUtils.SubscriptionErrorOccured += listener;
+
+        /// <summary>
+        /// Unregisters a listener from subscription errors.
+        /// </summary>
+        /// <param name="listener">Error listener to unregisetr</param>
+        public void UnregisterSubscriptionErrorListener(Action<SubscriptionError, string> listener) => HttpUtils.SubscriptionErrorOccured -= listener;
 
         /// <summary>
         /// Subscribe to a query in GraphQL.
