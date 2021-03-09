@@ -146,26 +146,30 @@ namespace SimpleGraphQL
             Dictionary<string, string> headers = null
         )
         {
-            if (query.OperationType != OperationType.Subscription)
+            if(query.OperationType != OperationType.Subscription)
             {
                 Debug.LogError("Operation Type should be a subscription!");
                 return false;
             }
 
-            if (CustomHeaders != null)
+            if(CustomHeaders != null)
             {
-                if (headers == null) headers = new Dictionary<string, string>();
+                if(headers == null) headers = new Dictionary<string, string>();
 
-                foreach (KeyValuePair<string, string> header in CustomHeaders)
+                foreach(KeyValuePair<string, string> header in CustomHeaders)
                 {
                     headers.Add(header.Key, header.Value);
                 }
             }
 
-            if (!HttpUtils.IsWebSocketReady())
+            if(!HttpUtils.IsWebSocketReady())
             {
                 // Prepare the socket before continuing.
-                await HttpUtils.WebSocketConnect(Endpoint, authScheme, authToken, "graphql-ws", headers);
+                bool connectionSuccessful = await HttpUtils.WebSocketConnect(Endpoint, authScheme, authToken, "graphql-ws", headers);
+                if(!connectionSuccessful)
+                {
+                    return false;
+                }
             }
 
             return await HttpUtils.WebSocketSubscribe(id, query, variables);

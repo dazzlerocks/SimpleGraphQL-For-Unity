@@ -112,7 +112,7 @@ namespace SimpleGraphQL
         /// <param name="headers"></param>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        public static async Task WebSocketConnect(
+        public static async Task<bool> WebSocketConnect(
             string url,
             string authScheme = "Bearer",
             string authToken = null,
@@ -156,10 +156,12 @@ namespace SimpleGraphQL
                 Debug.Log("Websocket is updating");
                 // Start listening to the websocket for data.
                 WebSocketUpdate();
+                return true;
             }
             catch (Exception e)
             {
                 Debug.LogError(e.Message);
+                return false;
             }
         }
 
