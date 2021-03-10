@@ -67,17 +67,20 @@ namespace SimpleGraphQL
             Dictionary<string, string> headers = null
         )
         {
-            if (query.OperationType == OperationType.Subscription)
+            if(query.OperationType == OperationType.Subscription)
             {
                 Debug.LogError("Operation Type should not be a subscription!");
                 return null;
             }
 
-            if (CustomHeaders != null)
+            if(CustomHeaders != null)
             {
-                if (headers == null) headers = new Dictionary<string, string>();
+                if(headers == null)
+                {
+                    headers = new Dictionary<string, string>();
+                }
 
-                foreach (KeyValuePair<string, string> header in CustomHeaders)
+                foreach(KeyValuePair<string, string> header in CustomHeaders)
                 {
                     headers.Add(header.Key, header.Value);
                 }
@@ -154,7 +157,10 @@ namespace SimpleGraphQL
 
             if(CustomHeaders != null)
             {
-                if(headers == null) headers = new Dictionary<string, string>();
+                if(headers == null)
+                {
+                    headers = new Dictionary<string, string>();
+                }
 
                 foreach(KeyValuePair<string, string> header in CustomHeaders)
                 {
@@ -181,7 +187,7 @@ namespace SimpleGraphQL
         /// <param name="id"></param>
         public async Task Unsubscribe(string id)
         {
-            if (!HttpUtils.IsWebSocketReady())
+            if(!HttpUtils.IsWebSocketReady())
             {
                 // Socket is already apparently closed, so this wouldn't work anyways.
                 return;
