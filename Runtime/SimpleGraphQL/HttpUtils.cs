@@ -93,6 +93,11 @@ namespace SimpleGraphQL
                     await Task.Yield();
                 }
 
+                if(request.result != UnityWebRequest.Result.Success)
+                {
+                    return request.downloadHandler.error;
+                }
+
                 return request.downloadHandler.text;
             }
             catch(Exception e)
