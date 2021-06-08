@@ -95,7 +95,7 @@ namespace SimpleGraphQL
 
                 if(request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogError($"Http Query failed with result {request.result}");
+                    Debug.LogError($"Http Query to URL {url} failed with result {request.result}\nAuth Scheme: {authScheme}\nAuth token: {authToken}\nHeaders:\n\t{(headers != null ? string.Join("\n\t", headers) : "N/A")}\nVariables:\n\t{(variables != null ? string.Join("\n\t", variables) : "N/A")}\nQuery:{query}");
                     return request.downloadHandler.error;
                 }
 
