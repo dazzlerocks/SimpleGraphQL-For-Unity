@@ -95,6 +95,7 @@ namespace SimpleGraphQL
 
                 if(request.result != UnityWebRequest.Result.Success)
                 {
+                    Debug.LogError($"Http Query failed with result {request.result}");
                     return request.downloadHandler.error;
                 }
 
